@@ -8,17 +8,15 @@ Clipboard Queue - 全局热键管理器
 
 import keyboard
 import threading
-import time
 
 
 class HotkeyManager:
-    """全局热键注册与管理"""
+    """全局热键注册与管理。"""
 
     DEFER_DELAY = 0.15  # 延迟执行时间（秒）
 
     def __init__(self):
         self._callbacks = {}
-        self._hotkey_ids = {}
         self._running = False
         self._lock = threading.Lock()
 
@@ -31,8 +29,23 @@ class HotkeyManager:
         with self._lock:
             self._callbacks[hotkey] = callback
 
+    def clear_registrations(self):
+        """清空所有已登记的热键（不触发注销）。"""
+        with self._lock:
+            self._callbacks.clear()
+
+    def configure(self, bindings):
+        """
+        一次性替换全部热键并重新注册。
+        bindings: {hotkey: callback}
+        """
+        with self._lock:
+            self._callbacks = dict(bindings or {})
+        self.start()
+
     def start(self):
-        """启动热键监听"""
+        """启动热键监听（先清理旧监听，再注册全部）。"""
+        self.stop()
         self._running = True
         with self._lock:
             for hotkey, callback in self._callbacks.items():
@@ -44,35 +57,32 @@ class HotkeyManager:
                             threading.Timer(self.DEFER_DELAY, cb).start()
                         return wrapper
 
-                    handler = keyboard.add_hotkey(
+                    keyboard.add_hotkey(
                         hotkey,
                         make_deferred(callback),
                         suppress=True,
                     )
-                    self._hotkey_ids[hotkey] = handler
                     print(f"  [Hotkey] {hotkey} 已注册")
                 except Exception as e:
                     print(f"  [Hotkey] 注册失败 {hotkey}: {e}")
 
     def stop(self):
-        """停止所有热键监听"""
+        """停止所有热键监听。"""
         self._running = False
         try:
             keyboard.unhook_all()
         except Exception:
             pass
-        with self._lock:
-            self._hotkey_ids.clear()
 
     def send_copy(self):
-        """模拟 Ctrl+C（复制选中内容到剪贴板）"""
+        """模拟 Ctrl+C（复制选中内容到剪贴板）。"""
         try:
             keyboard.send("ctrl+c")
         except Exception:
             pass
 
     def send_paste(self):
-        """模拟 Ctrl+V（粘贴剪贴板内容）"""
+        """模拟 Ctrl+V（粘贴剪贴板内容）。"""
         try:
             keyboard.send("ctrl+v")
         except Exception:

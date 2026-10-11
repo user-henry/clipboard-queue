@@ -5,7 +5,6 @@ Clipboard Queue - 通知提示辅助
 
 import subprocess
 import sys
-import os
 
 
 def _show_ps_toast(title, message):
@@ -59,6 +58,15 @@ class NotifyHelper:
             # 非 Windows 平台不做通知
             pass
 
+    def beep(self):
+        """播放系统提示音（Windows）。"""
+        if sys.platform == "win32":
+            try:
+                import winsound
+                winsound.MessageBeep()
+            except Exception:
+                pass
+
     def show_paste(self, preview):
         """粘贴成功通知"""
         display = preview if len(preview) <= 40 else preview[:37] + "..."
@@ -66,7 +74,7 @@ class NotifyHelper:
 
     def show_enqueue(self, count):
         """入队成功通知"""
-        self.show(f"已加入队列", f"队列长度: {count}")
+        self.show("已加入队列", f"队列长度: {count}")
 
     def show_empty(self):
         """队列为空通知"""
