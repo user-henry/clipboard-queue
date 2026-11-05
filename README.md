@@ -1,3 +1,5 @@
+**简体中文** | [English](README.en.md)
+
 # 📋 Clipboard Queue v2
 
 > 把复制粘贴变成「先进先出队列」的 Windows 工具，v2 升级为**科技感卡片界面**，
